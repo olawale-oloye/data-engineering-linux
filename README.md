@@ -15,6 +15,7 @@ Create preprocess.sh using nano <br>
 
 ### Data Ingestion
 curl -L -o "sales_data.csv" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv
+mv ~/data_pipeline/sales_data.csv ~/data_pipeline/input/sales_data.csv
 
 ### Data Transformation
 
