@@ -6,17 +6,18 @@ Make relevant directories (input, output, logs) <br>
 `mkdir -p ~/data_pipeline/input ~/data_pipeline/output ~/data_pipeline/logs`
 
 ## Data Ingestion and Preprocessing
-Create preprocess.sh using nano 
+Create preprocess.sh using nano <br>
 `touch preprocess.sh`
 
 ```
-​#!/bin/bash
+
+#!/bin/bash
 
 ### Data Ingestion
 curl -L -o "sales_data.csv" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv
 
 ### Data Transformation
-#!/bin/bash
+
 # Declare Input and Output paths
 INPUT_FILE=~/home/olawaleoloye/data_pipeline/input/sales_data.csv
 OUTPUT_FILE=~/home/olawaleoloye/data_pipeline/output/cleaned_sales_data.csv
@@ -36,9 +37,11 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing completed! Output saved to $OUTP
 > save on exit
 
 
-Create monitor.sh using nano 
+Create monitor.sh using nano <br>
 `touch monitor.sh`
+
 ```
+
 # Declare variables and path
 LOG_DIR=~/home/olawaleoloye/data_pipeline/logs
 SUMMARY_LOG="$LOG_DIR/monitor_summary.log"
@@ -62,10 +65,11 @@ if [[ -n "$ERRORS_FOUND" ]]; then
 else 
   echo "[$timestamp] No errors found." >> "$SUMMARY_LOG"
 fi
+
 ```
 > save on exit
 
-Make scripts executable
+Make scripts executable <br>
 `chmod +x /preprocess.sh /monitor.sh`
 
 ## Automate the Pipeline with Cron Jobs
@@ -76,10 +80,11 @@ Establish the server timezone / time
 Then  run `crontab -e`
 
 ```
+
 # Set Locale
 #CRON_TZ=Australia/Brisbane
 
-​# ┌──────── min (0)
+# ┌──────── min (0)
 # │ ┌────── hour (0 = midnight)
 # │ │ ┌──── day of month (* = every)
 # │ │ │ ┌── month (* = every)
@@ -92,16 +97,18 @@ Then  run `crontab -e`
 
 # Run monitor 5 minutes later
 5 0 * * * /home/olawaleoloye/data_pipeline/monitor.sh
+
 ```
 
-View active cron jobs
+View active cron jobs <br>
 `crontab -l`
+
 ## Permissions and Security
 Permissions 
 `chmod 700 /input  /logs`
 `chmod 755 /output`
 
-Check current permissions
+Check current permissions <br>
 `ls -ld ~/data_pipeline/*`
 `ls -l ~/preprocesssor.sh     ~/monitor.sh`
 

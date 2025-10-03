@@ -1,5 +1,8 @@
 #!/bin/bash
 
+curl -L -o "sales_data.csv" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv
+mv ~/data_pipeline/sales_data.csv ~/data_pipeline/input/sales_data.csv
+
 
 # Declare Input and Output paths 
 INPUT_FILE=~/data_pipeline/input/sales_data.csv
@@ -24,7 +27,7 @@ awk -F',' 'NR==1 {
 	next
 }
 NR>1 && $NF !="Failed"{ 
-	for (i=1; i<NF; i++1) {printf "%s%s", $i, (i<NF-1?",":"\n")}
+	for (i=1; i<NF; i++) {printf "%s%s", $i, (i<NF-1?",":"\n")}
 }' "$INPUT_FILE" > "$OUTPUT_FILE"
 
 #Log and sucesss message
