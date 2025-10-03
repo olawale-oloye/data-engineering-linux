@@ -12,6 +12,33 @@ Create preprocess.sh using nano
 ```
 ​#!/bin/bash
 
+### Data Ingestion
+curl -L -o "sales_data.csv" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv
+
+### Data Transformation
+#!/bin/bash
+# Declare Input and Output paths
+INPUT_FILE=~/home/olawaleoloye/data_pipeline/input/sales_data.csv
+OUTPUT_FILE=~/home/olawaleoloye/data_pipeline/output/cleaned_sales_data.csv
+LOG_FILE=~/Linux_LaunchPad/data_pipeline/logs/preprocess.log
+
+# Check if input file existsif [[ ! -f "$INPUT_FILE" ]]; then echo "Input file not found: $INPUT_FILE" exit 1fi
+# -f : flag checks if a file exists and it is a regular file
+
+# Remove the extra_col (last col) and filter out rows with status=Failed
+awk -F',' 'NR==1 { # remove last col header for (i=1; i<NF; i++) {printf "%s%s", $i, (i<NF-1?",":"\n")} next
+}NR>1 && $NF !="Failed"{ for (i=1; i<NF; i++1) {printf "%s%s", $i, (i<NF-1?",":"\n")}}' "$INPUT_FILE" > "$OUTPUT_FILE"
+
+### Data Storage
+#Log and sucesss message
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing completed! Output saved to $OUTPUT_FILE" >> "$LOG_FILE"echo "Preprocessing complete! Cleaned data saved to $OUTPUT_FILE"
+```
+> save on exit
+
+
+Create monitor.sh using nano 
+`touch monitor.sh`
+```
 # Declare variables and path
 LOG_DIR=~/home/olawaleoloye/data_pipeline/logs
 SUMMARY_LOG="$LOG_DIR/monitor_summary.log"
@@ -35,25 +62,6 @@ if [[ -n "$ERRORS_FOUND" ]]; then
 else 
   echo "[$timestamp] No errors found." >> "$SUMMARY_LOG"
 fi
-```
-> save on exit
-
-
-Create monitor.sh using nano 
-`touch preprocess.sh`
-```
-#!/bin/bash
-# Declare Input and Output paths INPUT_FILE=~/home/olawaleoloye/data_pipeline/input/sales_data.csvOUTPUT_FILE=~/home/olawaleoloye/data_pipeline/output/cleaned_sales_data.csvLOG_FILE=~/Linux_LaunchPad/data_pipeline/logs/preprocess.log
-
-# Check if input file existsif [[ ! -f "$INPUT_FILE" ]]; then echo "Input file not found: $INPUT_FILE" exit 1fi
-# -f : flag checks if a file exists and it is a regular file
-
-# Remove the extra_col (last col) and filter out rows with status=Failed
-awk -F',' 'NR==1 { # remove last col header for (i=1; i<NF; i++) {printf "%s%s", $i, (i<NF-1?",":"\n")} next
-}NR>1 && $NF !="Failed"{ for (i=1; i<NF; i++1) {printf "%s%s", $i, (i<NF-1?",":"\n")}}' "$INPUT_FILE" > "$OUTPUT_FILE"
-
-#Log and sucesss message
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing completed! Output saved to $OUTPUT_FILE" >> "$LOG_FILE"echo "Preprocessing complete! Cleaned data saved to $OUTPUT_FILE"
 ```
 > save on exit
 
