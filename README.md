@@ -1,18 +1,18 @@
-Succinct Data Pipeline using Bash Scripting
----
-## As a data engineer, was tasked to set up a data processing pipeline using Linux commands and bash scripts. This project would cover file manipulation, automation, permissions management, scheduling with cron, and logging.
----
-### Create directories for organizing the pipeline:
-~/data_pipeline/input
-~/data_pipeline/output
-~/data_pipeline/logs
+# Succinct Data Pipeline using Bash Scripting
 
-### Permissions and Security
-Adjust permissions to secure files and directories:
-Set the input folder to be writable only by your user.
-Restrict access to logs so only authorized users can read them.
+As a data engineer, was tasked to set up a data processing pipeline using Linux commands and bash scripts. This project would cover file manipulation, automation, permissions management, scheduling with cron, and logging.
 
-Create preprocess.sh using nano <br>
+### Create directories for organizing the pipeline:<br>
+    1. ~/data_pipeline/input <br>
+    2. ~/data_pipeline/output <br>
+    3. ~/data_pipeline/logs <br>
+
+### Permissions and Security <br>
+    1. Adjust permissions to secure files and directories: <br>
+    2. Set the input folder to be writable only by your user. <br>
+    3. Restrict access to logs so only authorized users can read them. <br>
+
+### Create preprocess.sh using nano <br>
 `touch preprocess.sh`
 
 ```
@@ -74,10 +74,11 @@ NR==1 {
 }
 
 ```
-> save on exit
+> save on exit <br>
+`:wq`
 
 
-Create monitor.sh using nano <br>
+### Create monitor.sh using nano <br>
 `touch monitor.sh`
 
 ```
@@ -130,14 +131,15 @@ fi
 
 
 ```
-> save on exit
+> save on exit <br>
+`:wq`
 
 Make scripts executable <br>
 `chmod +x /preprocess.sh /monitor.sh`
 
-## Automate the Pipeline with Cron Jobs
-On the terminal
-Establish the server timezone / time 
+### Automate the Pipeline with Cron Jobs
+On the terminal <br>
+Establish the server timezone / time <br>
 `date`
 
 Then  run `crontab -e`
@@ -163,16 +165,11 @@ Then  run `crontab -e`
 
 ```
 
-View active cron jobs <br>
+### View active cron jobs <br>
 `crontab -l`
 
-## Permissions and Security
-Permissions 
-`chmod 700 /input  /logs`
-`chmod 755 /output`
-
-Check current permissions <br>
-`ls -ld ~/data_pipeline/*`
+### Check current permissions <br>
+`ls -ld ~/data_pipeline/*` <br>
 `ls -l ~/preprocesssor.sh     ~/monitor.sh`
 
 
