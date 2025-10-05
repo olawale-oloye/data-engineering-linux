@@ -1,11 +1,17 @@
-# Succinct Data Pipeline using Bash Scripting
-
+Succinct Data Pipeline using Bash Scripting
 ---
-## Set Up the Environment
-Make relevant directories (input, output, logs) <br>
-`mkdir -p ~/data_pipeline/input ~/data_pipeline/output ~/data_pipeline/logs`
+## As a data engineer, was tasked to set up a data processing pipeline using Linux commands and bash scripts. This project would cover file manipulation, automation, permissions management, scheduling with cron, and logging.
+---
+### Create directories for organizing the pipeline:
+~/data_pipeline/input
+~/data_pipeline/output
+~/data_pipeline/logs
 
-## Data Ingestion and Preprocessing
+### Permissions and Security
+Adjust permissions to secure files and directories:
+Set the input folder to be writable only by your user.
+Restrict access to logs so only authorized users can read them.
+
 Create preprocess.sh using nano <br>
 `touch preprocess.sh`
 
@@ -13,27 +19,60 @@ Create preprocess.sh using nano <br>
 
 #!/bin/bash
 
-### Data Ingestion
-curl -L -o "sales_data.csv" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv
-mv ~/data_pipeline/sales_data.csv ~/data_pipeline/input/sales_data.csv
+# ====================================================
+#  Preprocess Script: Download, Clean, and Log Events
+# ====================================================
 
-### Data Transformation
+# Define directories and files
+BASE_DIR=~/data_pipeline
+INPUT_DIR=$BASE_DIR/input
+OUTPUT_DIR=$BASE_DIR/output
+LOG_DIR=$BASE_DIR/logs
 
-# Declare Input and Output paths
-INPUT_FILE=~/home/olawaleoloye/data_pipeline/input/sales_data.csv
-OUTPUT_FILE=~/home/olawaleoloye/data_pipeline/output/cleaned_sales_data.csv
-LOG_FILE=~/Linux_LaunchPad/data_pipeline/logs/preprocess.log
+INPUT_FILE=$INPUT_DIR/sales_data.csv
+OUTPUT_FILE=$OUTPUT_DIR/cleaned_sales_data.csv
+LOG_FILE=$LOG_DIR/preprocess.log
 
-# Check if input file existsif [[ ! -f "$INPUT_FILE" ]]; then echo "Input file not found: $INPUT_FILE" exit 1fi
-# -f : flag checks if a file exists and it is a regular file
+# Create directories if they don't exist
+mkdir -p "$INPUT_DIR" "$OUTPUT_DIR" "$LOG_DIR"
 
-# Remove the extra_col (last col) and filter out rows with status=Failed
-awk -F',' 'NR==1 { # remove last col header for (i=1; i<NF; i++) {printf "%s%s", $i, (i<NF-1?",":"\n")} next
-}NR>1 && $NF !="Failed"{ for (i=1; i<NF; i++1) {printf "%s%s", $i, (i<NF-1?",":"\n")}}' "$INPUT_FILE" > "$OUTPUT_FILE"
+# Start logging
+echo "=============================================" >> "$LOG_FILE"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Pipeline started" >> "$LOG_FILE"
 
-### Data Storage
-#Log and sucesss message
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing completed! Output saved to $OUTPUT_FILE" >> "$LOG_FILE"echo "Preprocessing complete! Cleaned data saved to $OUTPUT_FILE"
+# Step 1: Data Ingestion
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting data ingestion..." >> "$LOG_FILE"
+
+if curl -L -o "$INPUT_FILE" https://raw.githubusercontent.com/dataengineering-community/launchpad/refs/heads/main/Linux/sales_data.csv; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Data successfully downloaded to $INPUT_FILE" >> "$LOG_FILE"
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to download sales_data.csv" >> "$LOG_FILE"
+    echo "Failed to download data. Check internet connection or URL."
+    exit 1
+fi
+
+# Step 2: Validate input file
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Validating input file..." >> "$LOG_FILE"
+
+if [[ ! -f "$INPUT_FILE" ]]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Input file not found at $INPUT_FILE" >> "$LOG_FILE"
+    echo "Input file not found."
+    exit 1
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Input file exists. Proceeding to cleaning stage." >> "$LOG_FILE"
+fi
+
+# Step 3: Data Cleaning
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Cleaning data (removing 'extra_col' and filtering 'Failed' rows)..." >> "$LOG_FILE"
+
+if awk -F',' '
+NR==1 {
+    for (i=1; i<NF; i++) {
+        printf "%s%s", $i, (i<NF-1 ? "," : "\n")
+    }
+    next
+}
+
 ```
 > save on exit
 
@@ -43,29 +82,52 @@ Create monitor.sh using nano <br>
 
 ```
 
-# Declare variables and path
-LOG_DIR=~/home/olawaleoloye/data_pipeline/logs
+#!/bin/bash
+
+# ====================================================
+#   Monitor Script: Scan Logs for Errors and Summarize
+# ====================================================
+
+# Declare directories and file paths
+LOG_DIR=~/data_pipeline/logs
 SUMMARY_LOG="$LOG_DIR/monitor_summary.log"
 
-# Patterns to flag
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
+
+# Start a new section in the summary log
+timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+echo "=============================================" >> "$SUMMARY_LOG"
+echo "[$timestamp] - Monitoring started" >> "$SUMMARY_LOG"
+
+# Patterns to look for (case-insensitive)
 PATTERN='ERROR|FAILED|EXCEPTION|FAIL|CRITICAL'
 
-# Find matches (case-insensitive), include line numbers
-ERRORS_FOUND=$(grep -Eirn "$PATTERN" "$LOG_DIR"/*log 2>/dev/null)
+# Find matches (case-insensitive), include file name and line number
+ERRORS_FOUND=$(grep -Eirn "$PATTERN" "$LOG_DIR"/*.log 2>/dev/null)
 
-timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-if [[ -n "$ERRORS_FOUND" ]]; then 
+if [[ -n "$ERRORS_FOUND" ]]; then
+  ERROR_COUNT=$(echo "$ERRORS_FOUND" | wc -l)
   {
-    echo "[$timestamp] Errors detected in pipeline logs: "
+    echo "[$timestamp] Errors detected in pipeline logs!"
+    echo "[$timestamp] Total matches: $ERROR_COUNT"
+    echo "------------------"
     echo "$ERRORS_FOUND"
-    echo "======"
+    echo "------------------"
+    echo "[$timestamp] End of error report."
+    echo
   } >> "$SUMMARY_LOG"
 
-# Also print to terminal if run manually
+  # Also print to terminal (for manual runs)
+  echo "$ERROR_COUNT potential errors found:"
   echo "$ERRORS_FOUND"
-else 
-  echo "[$timestamp] No errors found." >> "$SUMMARY_LOG"
+  exit 1
+else
+  echo "[$timestamp] No errors found in logs." >> "$SUMMARY_LOG"
+  echo "No errors found in logs."
+  exit 0
 fi
+
 
 ```
 > save on exit
